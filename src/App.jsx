@@ -3,9 +3,9 @@ import React, { useMemo, useRef, useState } from "react";
 /**
  * NILU Pizzería – React (Vite + Tailwind)
  * - Smooth in-container scrolling (PC preview 1280×800)
- * - Local stock images (public/img/*.svg)
- * - Cart + checkout (pago simulado) con validaciones
- * - Helpers puros + tests con console.assert
+ * - Imágenes locales (public/img/*.svg)
+ * - Carrito + checkout con pago simulado (validaciones)
+ * - Helpers puros + mini tests con console.assert
  */
 
 // ---------- Helpers ----------
@@ -20,26 +20,26 @@ export function upsertCartItem(cart,{id,name,size,unitPrice,qty}) {
   return [...cart,{key,id,name,size,qty,unitPrice}];
 }
 
-// ---------- Inline tests ----------
-(function T(){
+// ---------- Mini tests (no toques) ----------
+;(function(){
   try{
     console.assert(computeSubtotal([])===0, "Subtotal vacío");
     console.assert(computeSubtotal([{unitPrice:100,qty:1},{unitPrice:50,qty:3}])===250,"Subtotal 250");
-    console.assert(computeDelivery(0)===0,"Envio 0");
-    console.assert(computeDelivery(399)===30,"Envio 30");
-    console.assert(computeDelivery(400)===0,"Envio 0 desde 400");
+    console.assert(computeDelivery(0)===0,"Envío 0");
+    console.assert(computeDelivery(399)===30,"Envío 30 (<400)");
+    console.assert(computeDelivery(400)===0,"Envío 0 (>=400)");
     const A=[{unitPrice:170,qty:1},{unitPrice:180,qty:1}]; console.assert(computeTotal(A)===380,"Total 380");
     const B=[{unitPrice:200,qty:2}]; console.assert(computeTotal(B)===400,"Total 400");
     const c1=upsertCartItem([], {id:"pep",name:"Peperoni",size:"slice",unitPrice:170,qty:1});
     const c2=upsertCartItem(c1,{id:"pep",name:"Peperoni",size:"slice",unitPrice:170,qty:2});
     console.assert(c2[0].qty===3,"merge qty");
     const c3=upsertCartItem(c2,{id:"pep",name:"Peperoni",size:"full",unitPrice:300,qty:1});
-    console.assert(c3.length===2,"line new size");
+    console.assert(c3.length===2,"nueva línea por size distinto");
   }catch(e){ console.error("Test failure:", e); }
 })();
 
 export default function App(){
-  // Data
+  // Datos de menú (usan imágenes locales en /public/img)
   const MENU = [
     { id:"nap", name:"Napolitana", desc:"San Marzano, fior di latte, albahaca.", img:"/img/napolitana.svg", prices:{slice:180, full:320} },
     { id:"ny",  name:"New York",   desc:"Slice delgado, queso estirable, borde con carácter.", img:"/img/newyork.svg", prices:{slice:190, full:340} },
@@ -49,16 +49,16 @@ export default function App(){
     { id:"esp", name:"Especial de temporada", desc:"Siempre fresco, según el mercado.", img:"/img/especial.svg", prices:{slice:200, full:360} },
   ];
 
-  // State
+  // Estado
   const [cart,setCart]=useState([]);
   const [order,setOrder]=useState({name:"",phone:"",address:"",notes:"",payMethod:"card",cardNumber:"",cardExpiry:"",cardCvc:""});
 
-  // Derived
+  // Derivados
   const subtotal = useMemo(()=>computeSubtotal(cart),[cart]);
   const delivery = useMemo(()=>computeDelivery(subtotal),[subtotal]);
   const total = subtotal + delivery;
 
-  // Smooth scroll inside preview container
+  // Scroll suave dentro del contenedor con overflow
   const scrollerRef = useRef(null);
   const scrollToId = (e,id)=>{
     e?.preventDefault?.();
@@ -69,7 +69,7 @@ export default function App(){
     scroller.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
   };
 
-  // Actions
+  // Acciones
   const addToCart=(item,size="full",qty=1)=> setCart(prev=>upsertCartItem(prev,{id:item.id,name:item.name,size,qty,unitPrice:item.prices[size]}));
   const updateQty=(key,qty)=> setCart(prev=> prev.map(i=>i.key===key?{...i,qty:Math.max(0,qty)}:i).filter(i=>i.qty>0));
   const removeItem=(key)=> setCart(prev=> prev.filter(i=>i.key!==key));
@@ -78,10 +78,13 @@ export default function App(){
     if(!order.name || !order.phone || !order.address) return alert("Completa nombre, teléfono y dirección.");
     if(cart.length===0) return alert("Agrega al menos un producto al carrito.");
     if(order.payMethod==="card"){
-      const digits=order.cardNumber.replace(/\\s+/g,"");
-      if(!/^\\d{16}$/.test(digits)) return alert("Número de tarjeta inválido (16 dígitos).");
-      if(!/^\\d{2}\\/\\d{2}$/.test(order.cardExpiry)) return alert("Fecha inválida (MM/AA).");
-      if(!/^\\d{3,4}$/.test(order.cardCvc)) return alert("CVC inválido.");
+      // Validaciones sin regex "raras" para evitar errores en el build
+      const digits=order.cardNumber.replace(/\s+/g,"");
+      if(!/^\d{16}$/.test(digits)) return alert("Número de tarjeta inválido (16 dígitos).");
+      const [mm,yy]=(order.cardExpiry||"").split("/");
+      const validExp = mm && yy && mm.length===2 && yy.length===2 && /^\d+$/.test(mm) && /^\d+$/.test(yy) && Number(mm)>=1 && Number(mm)<=12;
+      if(!validExp) return alert("Fecha inválida (MM/AA).");
+      if(!/^\d{3,4}$/.test(order.cardCvc)) return alert("CVC inválido.");
     }
     const summary=cart.map(i=>`${i.qty} x ${i.name} (${i.size==='slice'?'Rebanada':'Completa'})`).join('%0A');
     const msg=`Pedido NILU%0A%0A${summary}%0A%0ASubtotal: ${mxn(subtotal)}%0AEnvío: ${mxn(delivery)}%0ATotal: ${mxn(total)}%0A%0ANombre: ${encodeURIComponent(order.name)}%0ATeléfono: ${encodeURIComponent(order.phone)}%0ADirección: ${encodeURIComponent(order.address)}%0ANotas: ${encodeURIComponent(order.notes||'-')}`;
@@ -96,7 +99,11 @@ export default function App(){
 
   return (
     <div className="min-h-screen bg-neutral-900 p-4">
-      <div ref={scrollerRef} className="mx-auto bg-[#faf4ea] text-stone-900 rounded-[2rem] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)] ring-1 ring-black/10 overflow-auto scroll-smooth" style={{ width:"1280px", height:"800px" }}>
+      <div
+        ref={scrollerRef}
+        className="mx-auto bg-[#faf4ea] text-stone-900 rounded-[2rem] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)] ring-1 ring-black/10 overflow-auto scroll-smooth"
+        style={{ width:"1280px", height:"800px" }}
+      >
         {/* Header */}
         <header className="sticky top-0 z-50 backdrop-blur bg-[#faf4ea]/80 border-b border-stone-200/60">
           <div className="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
