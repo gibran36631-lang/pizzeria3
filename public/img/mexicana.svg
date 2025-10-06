@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs><linearGradient id="g5" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#faf4ea"/><stop offset="100%" stop-color="#f0e6d8"/></linearGradient></defs>
+  <rect width="1600" height="1000" fill="url(#g5)" />
+  <g transform="translate(200,120) rotate(-6)">
+    <path d="M0 0 L900 0 L760 480 Q500 620 120 540 Z" fill="#f7d28a" opacity="0.92"/>
+    <path d="M20 50 L880 50 L735 500 Q500 610 135 520 Z" fill="#e75e40" opacity="0.88"/>
+    <circle cx="255" cy="320" r="45" fill="#d64b32" opacity="0.85"/>
+    <circle cx="475" cy="260" r="55" fill="#d64b32" opacity="0.85"/>
+    <circle cx="685" cy="340" r="50" fill="#d64b32" opacity="0.85"/>
+    <circle cx="545" cy="180" r="22" fill="#b7cf5e" opacity="0.85"/>
+    <circle cx="765" cy="260" r="22" fill="#b7cf5e" opacity="0.85"/>
+    <circle cx="335" cy="220" r="22" fill="#b7cf5e" opacity="0.85"/>
+  </g>
+  <text x="800" y="770" font-family="Georgia, 'Times New Roman', serif" font-size="78" text-anchor="middle" fill="#1f2937">Carne Asada</text>
+  <text x="800" y="840" font-family="Inter, system-ui, -apple-system" font-size="30" text-anchor="middle" fill="#6b7280">Cebolla, cilantro, guacamole</text>
+</svg>
