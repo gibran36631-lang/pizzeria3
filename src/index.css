@@ -8,6 +8,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
 img { display: block; max-width: 100%; }
